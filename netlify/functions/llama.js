@@ -19,11 +19,19 @@ export async function handler(event, context) {
     })
   });
 
-  const result = await res.json();
-  return {
-    statusCode: 200,
-    body: JSON.stringify({
-      reply: result?.choices?.[0]?.message?.content ?? "No reply."
+const result = await res.json();
+
+const reply = result?.choices?.[0]?.message?.content;
+
+return {
+  statusCode: 200,
+  body: JSON.stringify({
+    reply: reply && reply.trim() !== ""
+      ? reply
+      : "⚠️ Sorry, I couldn't generate a proper response. Please try rephrasing your question."
+  })
+};
+
     })
   };
 }
