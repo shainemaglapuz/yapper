@@ -1,4 +1,4 @@
-const fetch = require("node-fetch"); // Make sure node-fetch@2 is installed
+const fetch = require("node-fetch");
 
 const handler = async (event, context) => {
   console.log("✅ Function triggered");
@@ -22,7 +22,7 @@ const handler = async (event, context) => {
       };
     }
 
-    const response = await fetch("https://api-inference.huggingface.co/models/google/flan-t5-small", {
+    const response = await fetch("https://api-inference.huggingface.co/models/bigscience/bloom-560m", {
       method: "POST",
       headers: {
         Authorization: `Bearer ${HF_API_KEY}`,
@@ -31,24 +31,24 @@ const handler = async (event, context) => {
       body: JSON.stringify({ inputs: prompt })
     });
 
-    const text = await response.text();
+    const raw = await response.text();
 
     if (!response.ok) {
-      console.error("❌ API Error:", text);
+      console.error("❌ API Error:", raw);
       return {
         statusCode: 500,
-        body: JSON.stringify({ reply: `❌ API Error: ${text}` })
+        body: JSON.stringify({ reply: `❌ API Error: ${raw}` })
       };
     }
 
     let result;
     try {
-      result = JSON.parse(text);
+      result = JSON.parse(raw);
     } catch (err) {
-      console.error("❌ Response is not valid JSON:", text);
+      console.error("❌ JSON parse error:", raw);
       return {
         statusCode: 500,
-        body: JSON.stringify({ reply: "❌ Server error: Unable to parse model output." })
+        body: JSON.stringify({ reply: "❌ Server error: Invalid JSON response from model." })
       };
     }
 
@@ -58,9 +58,8 @@ const handler = async (event, context) => {
       statusCode: 200,
       body: JSON.stringify({ reply })
     };
-
   } catch (error) {
-    console.error("❌ Unexpected error:", error.message);
+    console.error("❌ Server error:", error.message);
     return {
       statusCode: 500,
       body: JSON.stringify({ reply: `❌ Unexpected error: ${error.message}` })
