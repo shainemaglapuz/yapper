@@ -10,7 +10,7 @@ export async function handler(event, context) {
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        model: "meta-llama/Meta-Llama-3-8B-Instruct",
+        model: "mistralai/Mistral-7B-Instruct-v0.1",
         messages: [
           { role: "system", content: "You are a helpful assistant." },
           { role: "user", content: prompt }
