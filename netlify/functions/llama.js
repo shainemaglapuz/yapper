@@ -1,4 +1,4 @@
-const fetch = require("node-fetch"); // Needed for older Netlify Node versions
+const fetch = require("node-fetch"); // Make sure node-fetch@2 is installed
 
 const handler = async (event, context) => {
   console.log("✅ Function triggered");
@@ -22,56 +22,48 @@ const handler = async (event, context) => {
       };
     }
 
-const res = await fetch("https://api-inference.huggingface.co/models/HuggingFaceH4/zephyr-7b-beta", {
-  method: "POST",
-  headers: {
-    Authorization: `Bearer ${HF_API_KEY}`,
-    "Content-Type": "application/json"
-  },
-  body: JSON.stringify({
-    inputs: prompt,
-    parameters: {
-      max_new_tokens: 200,
-      temperature: 0.7
-    }
-  })
-});
+    const response = await fetch("https://api-inference.huggingface.co/models/google/flan-t5-small", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${HF_API_KEY}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ inputs: prompt })
+    });
 
+    const text = await response.text();
 
-    const rawText = await res.text();
-
-    if (!res.ok) {
-      console.error("❌ Hugging Face API error:", rawText);
+    if (!response.ok) {
+      console.error("❌ API Error:", text);
       return {
         statusCode: 500,
-        body: JSON.stringify({ reply: `❌ API Error: ${rawText}` })
+        body: JSON.stringify({ reply: `❌ API Error: ${text}` })
       };
     }
 
     let result;
     try {
-      result = JSON.parse(rawText);
-    } catch (e) {
-      console.error("❌ JSON parse error:", rawText);
+      result = JSON.parse(text);
+    } catch (err) {
+      console.error("❌ Response is not valid JSON:", text);
       return {
         statusCode: 500,
-        body: JSON.stringify({ reply: "❌ Server error: Could not parse response." })
+        body: JSON.stringify({ reply: "❌ Server error: Unable to parse model output." })
       };
     }
 
-    const reply = result?.[0]?.generated_text;
+    const reply = result?.[0]?.generated_text || "⚠️ No response from model.";
 
     return {
       statusCode: 200,
-      body: JSON.stringify({
-        reply: reply || "⚠️ Model did not return a response."
-      })
+      body: JSON.stringify({ reply })
     };
+
   } catch (error) {
-    console.error("❌ Server error:", error);
+    console.error("❌ Unexpected error:", error.message);
     return {
       statusCode: 500,
-      body: JSON.stringify({ reply: "❌ Server error: " + error.message })
+      body: JSON.stringify({ reply: `❌ Unexpected error: ${error.message}` })
     };
   }
 };
