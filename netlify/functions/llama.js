@@ -17,7 +17,7 @@ export async function handler(event, context) {
         }
       })
     });
-
+//testingredeploy
     const result = await res.json();
 
     console.log("🔍 Hugging Face raw response:", JSON.stringify(result, null, 2));
