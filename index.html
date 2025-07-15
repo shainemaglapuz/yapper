@@ -29,31 +29,33 @@
     ></div>
   </div>
 
-  <script>
-    async function askLLaMA() {
-      const prompt = document.getElementById('prompt').value;
-      const output = document.getElementById('response');
-      output.textContent = "Thinking...";
+<script>
+  async function askLLaMA() {
+    const prompt = document.getElementById('prompt').value;
+    const output = document.getElementById('response');
+    output.textContent = "Thinking...";
 
-const res = await fetch("/.netlify/functions/llama", {
-  method: "POST",
-  headers: { "Content-Type": "application/json" },
-  body: JSON.stringify({ prompt })
-});
+    try {
+      const res = await fetch("/.netlify/functions/llama", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ prompt })
+      });
 
-if (!res.ok) {
-  output.textContent = "❌ Error: " + res.statusText;
-  return;
-}
+      const raw = await res.text();  // Read the body as raw text first
 
-const data = await res.json();
-if (!data.reply || data.reply.trim() === "") {
-  output.textContent = "⚠️ No meaningful response from the model.";
-} else {
-  output.textContent = data.reply;
-}
+      if (!res.ok) {
+        output.textContent = `❌ Error ${res.status}: ${res.statusText}\n${raw}`;
+        return;
+      }
 
+      const data = JSON.parse(raw);  // Convert it to JSON if it's OK
+      output.textContent = data.reply || "⚠️ No reply received.";
+    } catch (err) {
+      output.textContent = "❌ JS fetch error: " + err.message;
     }
-  </script>
+  }
+</script>
+
 </body>
 </html>
