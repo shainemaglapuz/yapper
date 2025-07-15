@@ -1,24 +1,48 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+  <meta charset="UTF-8">
   <title>LLaMA Chat</title>
+  <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
-  <h2>LLaMA Chat</h2>
-  <textarea id="prompt" rows="5" cols="60" placeholder="Ask me anything..."></textarea><br>
-  <button onclick="askLLaMA()">Send</button>
-  <pre id="response"></pre>
+<body class="bg-gray-100 h-screen flex items-center justify-center">
+  <div class="bg-white shadow-lg rounded-lg p-8 max-w-xl w-full text-center">
+    <h1 class="text-3xl font-bold mb-4 text-gray-800">Ask Me</h1>
+
+    <textarea
+      id="prompt"
+      rows="4"
+      placeholder="Type your question here..."
+      class="w-full p-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 resize-none"
+    ></textarea>
+
+    <button
+      onclick="askLLaMA()"
+      class="mt-4 bg-blue-600 text-white px-6 py-2 rounded-full hover:bg-blue-700 transition"
+    >
+      Send
+    </button>
+
+    <div
+      id="response"
+      class="mt-6 text-left bg-gray-50 border border-gray-200 p-4 rounded-lg text-gray-700 whitespace-pre-wrap"
+    ></div>
+  </div>
 
   <script>
     async function askLLaMA() {
       const prompt = document.getElementById('prompt').value;
+      const output = document.getElementById('response');
+      output.textContent = "Thinking...";
+
       const res = await fetch("/.netlify/functions/llama", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ prompt })
       });
+
       const data = await res.json();
-      document.getElementById('response').textContent = data.reply || "No response.";
+      output.textContent = data.reply || "No response.";
     }
   </script>
 </body>
