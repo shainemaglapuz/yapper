@@ -3,36 +3,33 @@ export async function handler(event, context) {
     const { prompt } = JSON.parse(event.body);
     const HF_API_KEY = process.env.HF_API_KEY;
 
-    const res = await fetch("https://api-inference.huggingface.co/v1/chat/completions", {
+    const res = await fetch("https://api-inference.huggingface.co/models/mistralai/Mistral-7B-Instruct-v0.1", {
       method: "POST",
       headers: {
         "Authorization": `Bearer ${HF_API_KEY}`,
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        model: "mistralai/Mistral-7B-Instruct-v0.1",
-        messages: [
-          { role: "system", content: "You are a helpful assistant." },
-          { role: "user", content: prompt }
-        ],
-        max_tokens: 200,
-        temperature: 0.7
+        inputs: prompt,
+        parameters: {
+          max_new_tokens: 200,
+          temperature: 0.7
+        }
       })
     });
 
     const result = await res.json();
 
-    // Log the full response for debugging (viewable in Netlify function logs)
     console.log("🔍 Hugging Face raw response:", JSON.stringify(result, null, 2));
 
-    const reply = result?.choices?.[0]?.message?.content;
+    const reply = result?.[0]?.generated_text;
 
     return {
       statusCode: 200,
       body: JSON.stringify({
         reply: reply && reply.trim() !== ""
           ? reply
-          : "⚠️ Sorry, I couldn't generate a proper response. Try rephrasing your question."
+          : "⚠️ Still no reply from the model. Try again with a different question."
       })
     };
   } catch (error) {
