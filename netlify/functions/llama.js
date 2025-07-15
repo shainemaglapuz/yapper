@@ -34,9 +34,11 @@ export async function handler(event, context) {
     };
   } catch (error) {
     console.error("❌ Error in Netlify function:", error);
-    return {
-      statusCode: 500,
-      body: JSON.stringify({ reply: "❌ Server error: " + error.message })
-    };
-  }
-}
+return {
+  statusCode: 200,
+  body: JSON.stringify({
+    reply: reply && reply.trim() !== ""
+      ? reply
+      : `⚠️ Still no reply from the model.\n\n🧪 Raw response:\n${JSON.stringify(result, null, 2)}`
+  })
+};
