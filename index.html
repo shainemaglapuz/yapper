@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>LLaMA Chat</title>
+</head>
+<body>
+  <h2>LLaMA Chat</h2>
+  <textarea id="prompt" rows="5" cols="60" placeholder="Ask me anything..."></textarea><br>
+  <button onclick="askLLaMA()">Send</button>
+  <pre id="response"></pre>
+
+  <script>
+    async function askLLaMA() {
+      const prompt = document.getElementById('prompt').value;
+      const res = await fetch("/.netlify/functions/llama", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ prompt })
+      });
+      const data = await res.json();
+      document.getElementById('response').textContent = data.reply || "No response.";
+    }
+  </script>
+</body>
+</html>
