@@ -35,14 +35,24 @@
       const output = document.getElementById('response');
       output.textContent = "Thinking...";
 
-      const res = await fetch("/.netlify/functions/llama", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ prompt })
-      });
+const res = await fetch("/.netlify/functions/llama", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({ prompt })
+});
 
-      const data = await res.json();
-      output.textContent = data.reply || "No response.";
+if (!res.ok) {
+  output.textContent = "❌ Error: " + res.statusText;
+  return;
+}
+
+const data = await res.json();
+if (!data.reply || data.reply.trim() === "") {
+  output.textContent = "⚠️ No meaningful response from the model.";
+} else {
+  output.textContent = data.reply;
+}
+
     }
   </script>
 </body>
