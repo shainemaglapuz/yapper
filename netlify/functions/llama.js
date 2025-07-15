@@ -22,38 +22,47 @@ export async function handler(event, context) {
       };
     }
 
-    const res = await fetch("https://api-inference.huggingface.co/models/mistralai/Mistral-7B-Instruct-v0.1", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${HF_API_KEY}`,
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        inputs: prompt,
-        parameters: {
-          max_new_tokens: 200,
-          temperature: 0.7
-        }
-      })
-    });
+   const res = await fetch("https://api-inference.huggingface.co/models/mistralai/Mistral-7B-Instruct-v0.1", {
+  method: "POST",
+  headers: {
+    Authorization: `Bearer ${HF_API_KEY}`,
+    "Content-Type": "application/json"
+  },
+  body: JSON.stringify({
+    inputs: prompt,
+    parameters: {
+      max_new_tokens: 200,
+      temperature: 0.7
+    }
+  })
+});
 
-    const result = await res.json();
+const rawText = await res.text();
 
-    console.log("🔍 Hugging Face response:", JSON.stringify(result, null, 2));
-
-    const reply = result?.[0]?.generated_text;
-
-    return {
-      statusCode: 200,
-      body: JSON.stringify({
-        reply: reply || "⚠️ No reply from model."
-      })
-    };
-  } catch (error) {
-    console.error("❌ Server error:", error);
-    return {
-      statusCode: 500,
-      body: JSON.stringify({ reply: "❌ Server error: " + error.message })
-    };
-  }
+if (!res.ok) {
+  console.error("❌ Hugging Face API error:", rawText);
+  return {
+    statusCode: 500,
+    body: JSON.stringify({ reply: `❌ API Error: ${rawText}` })
+  };
 }
+
+let result;
+try {
+  result = JSON.parse(rawText);
+} catch (e) {
+  console.error("❌ JSON parse error:", rawText);
+  return {
+    statusCode: 500,
+    body: JSON.stringify({ reply: "❌ Server error: Could not parse response." })
+  };
+}
+
+const reply = result?.[0]?.generated_text;
+
+return {
+  statusCode: 200,
+  body: JSON.stringify({
+    reply: reply || "⚠️ Model did not return a response."
+  })
+};
